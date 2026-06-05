@@ -20,14 +20,25 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         keyboard = [[InlineKeyboardButton("عضویت در کانال 📢", url="https://t.me/Ya4DeT")]]
         await update.message.reply_text("⚠️ برای استفاده از ربات باید در کانال ما عضو بشی!", reply_markup=InlineKeyboardMarkup(keyboard))
         return
-    await update.message.reply_text("سلام! 👋\n\nلینک بفرست تا دانلود کنم:\n🎬 ویدیو: TikTok, Instagram\n🎵 موزیک: لینک + بنویس /music")
+    await update.message.reply_text("سلام! 👋\n\nلینک بفرست تا دانلود کنم:\n🎬 ویدیو: TikTok, Instagram\n🎵 موزیک: /music لینک_ساندکلود")
+
+async def get_url(update):
+    if update.message.text:
+        return update.message.text.strip()
+    if update.message.entities:
+        for entity in update.message.entities:
+            if entity.type == "url":
+                return update.message.text[entity.offset:entity.offset + entity.length]
+    return None
 
 async def download(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not await check_member(update, context):
         keyboard = [[InlineKeyboardButton("عضویت در کانال 📢", url="https://t.me/Ya4DeT")]]
         await update.message.reply_text("⚠️ برای استفاده از ربات باید در کانال ما عضو بشی!", reply_markup=InlineKeyboardMarkup(keyboard))
         return
-    url = update.message.text
+    url = await get_url(update)
+    if not url or not url.startswith("http"):
+        return
     msg = await update.message.reply_text("⏳ دارم ویدیو رو دانلود میکنم...")
     try:
         ydl_opts = {
@@ -52,10 +63,16 @@ async def music(update: Update, context: ContextTypes.DEFAULT_TYPE):
         keyboard = [[InlineKeyboardButton("عضویت در کانال 📢", url="https://t.me/Ya4DeT")]]
         await update.message.reply_text("⚠️ برای استفاده از ربات باید در کانال ما عضو بشی!", reply_markup=InlineKeyboardMarkup(keyboard))
         return
-    if not context.args:
+    url = None
+    if context.args:
+        url = context.args[0]
+    elif update.message.entities:
+        for entity in update.message.entities:
+            if entity.type == "url":
+                url = update.message.text[entity.offset:entity.offset + entity.length]
+    if not url:
         await update.message.reply_text("لینک رو بعد از /music بنویس!\nمثال: /music https://soundcloud.com/...")
         return
-    url = context.args[0]
     msg = await update.message.reply_text("⏳ دارم موزیک رو دانلود میکنم...")
     try:
         ydl_opts = {
