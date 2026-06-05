@@ -31,13 +31,15 @@ async def download(update: Update, context: ContextTypes.DEFAULT_TYPE):
     msg = await update.message.reply_text("⏳ دارم ویدیو رو دانلود میکنم...")
     try:
         ydl_opts = {
-            'format': 'best[filesize<50M]/best',
+            'format': 'bestvideo+bestaudio/best',
             'outtmpl': '/tmp/%(title)s.%(ext)s',
+            'merge_output_format': 'mp4',
+            'postprocessors': [{'key': 'FFmpegVideoConvertor', 'preferedformat': 'mp4'}],
             'quiet': True,
         }
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             info = ydl.extract_info(url, download=True)
-            filename = ydl.prepare_filename(info)
+            filename = ydl.prepare_filename(info).replace('.webm', '.mp4').replace('.mkv', '.mp4')
         with open(filename, 'rb') as f:
             await update.message.reply_video(f)
         os.remove(filename)
