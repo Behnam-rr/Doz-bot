@@ -20,7 +20,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         keyboard = [[InlineKeyboardButton("عضویت در کانال 📢", url="https://t.me/Ya4DeT")]]
         await update.message.reply_text("⚠️ برای استفاده از ربات باید در کانال ما عضو بشی!", reply_markup=InlineKeyboardMarkup(keyboard))
         return
-    await update.message.reply_text("سلام! 👋\n\nلینک بفرست تا دانلود کنم:\n🎬 ویدیو: TikTok, Instagram\n🎵 موزیک: لینک یوتیوب + بنویس /music")
+    await update.message.reply_text("سلام! 👋\n\nلینک بفرست تا دانلود کنم:\n🎬 ویدیو: TikTok, Instagram\n🎵 موزیک: لینک + بنویس /music")
 
 async def download(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not await check_member(update, context):
@@ -28,7 +28,7 @@ async def download(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text("⚠️ برای استفاده از ربات باید در کانال ما عضو بشی!", reply_markup=InlineKeyboardMarkup(keyboard))
         return
     url = update.message.text
-    await update.message.reply_text("⏳ دارم دانلود میکنم...")
+    msg = await update.message.reply_text("⏳ دارم ویدیو رو دانلود میکنم...")
     try:
         ydl_opts = {
             'format': 'best[filesize<50M]/best',
@@ -41,8 +41,9 @@ async def download(update: Update, context: ContextTypes.DEFAULT_TYPE):
         with open(filename, 'rb') as f:
             await update.message.reply_video(f)
         os.remove(filename)
+        await msg.delete()
     except Exception as e:
-        await update.message.reply_text("❌ خطا! لینک رو چک کن.")
+        await msg.edit_text("❌ خطا! لینک رو چک کن.")
 
 async def music(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not await check_member(update, context):
@@ -50,10 +51,10 @@ async def music(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text("⚠️ برای استفاده از ربات باید در کانال ما عضو بشی!", reply_markup=InlineKeyboardMarkup(keyboard))
         return
     if not context.args:
-        await update.message.reply_text("لینک یوتیوب رو بعد از /music بنویس!\nمثال: /music https://youtube.com/...")
+        await update.message.reply_text("لینک رو بعد از /music بنویس!\nمثال: /music https://soundcloud.com/...")
         return
     url = context.args[0]
-    await update.message.reply_text("⏳ دارم موزیک رو دانلود میکنم...")
+    msg = await update.message.reply_text("⏳ دارم موزیک رو دانلود میکنم...")
     try:
         ydl_opts = {
             'format': 'bestaudio/best',
@@ -67,8 +68,9 @@ async def music(update: Update, context: ContextTypes.DEFAULT_TYPE):
         with open(filename, 'rb') as f:
             await update.message.reply_audio(f, title=info.get('title', 'موزیک'))
         os.remove(filename)
+        await msg.delete()
     except Exception as e:
-        await update.message.reply_text("❌ خطا! لینک رو چک کن.")
+        await msg.edit_text("❌ خطا! لینک رو چک کن.")
 
 TOKEN = os.environ["TOKEN"]
 app = ApplicationBuilder().token(TOKEN).build()
