@@ -20,7 +20,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         keyboard = [[InlineKeyboardButton("عضویت در کانال 📢", url="https://t.me/Ya4DeT")]]
         await update.message.reply_text("⚠️ برای استفاده از ربات باید در کانال ما عضو بشی!", reply_markup=InlineKeyboardMarkup(keyboard))
         return
-    await update.message.reply_text("سلام! 👋\n\nلینک بفرست تا دانلود کنم:\n🎬 ویدیو: TikTok, Instagram\n🎵 موزیک: /music لینک_ساندکلود")
+    await update.message.reply_text("سلام! 👋\n\nلینک بفرست تا دانلود کنم:\n🎬 ویدیو: TikTok, Instagram\n📸 عکس: لینک پست اینستاگرام\n🎵 موزیک: /music لینک_ساندکلود")
 
 async def get_url(update):
     if update.message.text:
@@ -39,7 +39,7 @@ async def download(update: Update, context: ContextTypes.DEFAULT_TYPE):
     url = await get_url(update)
     if not url or not url.startswith("http"):
         return
-    msg = await update.message.reply_text("⏳ دارم ویدیو رو دانلود میکنم...")
+    msg = await update.message.reply_text("⏳ دارم دانلود میکنم...")
     try:
         ydl_opts = {
             'format': 'bestvideo+bestaudio/best',
@@ -50,7 +50,23 @@ async def download(update: Update, context: ContextTypes.DEFAULT_TYPE):
         }
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             info = ydl.extract_info(url, download=True)
+            
+            # اگه عکس بود
+            if info.get('_type') == 'playlist' or not info.get('formats'):
+                thumbnails = info.get('thumbnails') or []
+                if thumbnails:
+                    import urllib.request
+                    img_url = thumbnails[-1]['url']
+                    img_path = '/tmp/photo.jpg'
+                    urllib.request.urlretrieve(img_url, img_path)
+                    with open(img_path, 'rb') as f:
+                        await update.message.reply_photo(f)
+                    os.remove(img_path)
+                    await msg.delete()
+                    return
+            
             filename = ydl.prepare_filename(info).replace('.webm', '.mp4').replace('.mkv', '.mp4')
+        
         with open(filename, 'rb') as f:
             await update.message.reply_video(f)
         os.remove(filename)
