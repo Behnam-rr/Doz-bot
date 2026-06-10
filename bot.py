@@ -49,8 +49,10 @@ async def download(update: Update, context: ContextTypes.DEFAULT_TYPE):
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             info = ydl.extract_info(url, download=True)
             filename = ydl.prepare_filename(info)
+        width = info.get('width')
+        height = info.get('height')
         with open(filename, 'rb') as f:
-            await update.message.reply_video(f)
+            await update.message.reply_video(f, width=width, height=height, supports_streaming=True)
         os.remove(filename)
         await msg.delete()
     except Exception as e:
