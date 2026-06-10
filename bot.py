@@ -4,6 +4,8 @@ from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import ApplicationBuilder, MessageHandler, CommandHandler, filters, ContextTypes
 
 CHANNEL = "@Ya4DeT"
+ADMIN_ID = 6517505210
+users = set()
 
 async def check_member(update: Update, context):
     user_id = update.message.from_user.id
@@ -16,11 +18,57 @@ async def check_member(update: Update, context):
     return False
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user_id = update.message.from_user.id
+    users.add(user_id)
     if not await check_member(update, context):
         keyboard = [[InlineKeyboardButton("عضویت در کانال 📢", url="https://t.me/Ya4DeT")]]
         await update.message.reply_text("⚠️ برای استفاده از ربات باید در کانال ما عضو بشی!", reply_markup=InlineKeyboardMarkup(keyboard))
         return
     await update.message.reply_text("سلام! 👋\n\nلینک بفرست تا دانلود کنم:\n🎬 ویدیو: TikTok, Instagram\n🎵 موزیک: /music لینک_ساندکلود")
+
+async def admin(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if update.message.from_user.id != ADMIN_ID:
+        await update.message.reply_text("❌ دسترسی ندارید!")
+        return
+    keyboard = [
+        [InlineKeyboardButton("📊 آمار کاربران", callback_data="stats")],
+        [InlineKeyboardButton("📢 پیام همگانی", callback_data="broadcast")],
+    ]
+    await update.message.reply_text("👮 پنل ادمین:", reply_markup=InlineKeyboardMarkup(keyboard))
+
+async def stats(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if update.message.from_user.id != ADMIN_ID:
+        return
+    await update.message.reply_text(f"📊 تعداد کاربران: {len(users)} نفر")
+
+async def broadcast(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if update.message.from_user.id != ADMIN_ID:
+        return
+    if not context.args:
+        await update.message.reply_text("متن پیام رو بعد از /broadcast بنویس!")
+        return
+    text = " ".join(context.args)
+    sent = 0
+    for user_id in users:
+        try:
+            await context.bot.send_message(user_id, text)
+            sent += 1
+        except:
+            pass
+    await update.message.reply_text(f"✅ پیام به {sent} نفر فرستاده شد!")
+
+async def ban(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if update.message.from_user.id != ADMIN_ID:
+        return
+    if not context.args:
+        await update.message.reply_text("ID کاربر رو بعد از /ban بنویس!")
+        return
+    try:
+        ban_id = int(context.args[0])
+        users.discard(ban_id)
+        await update.message.reply_text(f"✅ کاربر {ban_id} بن شد!")
+    except:
+        await update.message.reply_text("❌ ID اشتباهه!")
 
 async def get_url(update):
     if update.message.text:
@@ -32,6 +80,8 @@ async def get_url(update):
     return None
 
 async def download(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user_id = update.message.from_user.id
+    users.add(user_id)
     if not await check_member(update, context):
         keyboard = [[InlineKeyboardButton("عضویت در کانال 📢", url="https://t.me/Ya4DeT")]]
         await update.message.reply_text("⚠️ برای استفاده از ربات باید در کانال ما عضو بشی!", reply_markup=InlineKeyboardMarkup(keyboard))
@@ -59,6 +109,8 @@ async def download(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await msg.edit_text("❌ خطا! لینک رو چک کن.")
 
 async def music(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user_id = update.message.from_user.id
+    users.add(user_id)
     if not await check_member(update, context):
         keyboard = [[InlineKeyboardButton("عضویت در کانال 📢", url="https://t.me/Ya4DeT")]]
         await update.message.reply_text("⚠️ برای استفاده از ربات باید در کانال ما عضو بشی!", reply_markup=InlineKeyboardMarkup(keyboard))
@@ -94,6 +146,10 @@ async def music(update: Update, context: ContextTypes.DEFAULT_TYPE):
 TOKEN = os.environ["TOKEN"]
 app = ApplicationBuilder().token(TOKEN).build()
 app.add_handler(CommandHandler("start", start))
+app.add_handler(CommandHandler("admin", admin))
+app.add_handler(CommandHandler("stats", stats))
+app.add_handler(CommandHandler("broadcast", broadcast))
+app.add_handler(CommandHandler("ban", ban))
 app.add_handler(CommandHandler("music", music))
 app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, download))
 app.run_polling()
