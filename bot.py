@@ -1,7 +1,7 @@
 import os
 import yt_dlp
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
-from telegram.ext import ApplicationBuilder, MessageHandler, CommandHandler, filters, ContextTypes
+from telegram.ext import ApplicationBuilder, MessageHandler, CommandHandler, CallbackQueryHandler, filters, ContextTypes
 
 CHANNEL = "@Ya4DeT"
 ADMIN_ID = 6517505210
@@ -32,14 +32,20 @@ async def admin(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return
     keyboard = [
         [InlineKeyboardButton("📊 آمار کاربران", callback_data="stats")],
-        [InlineKeyboardButton("📢 پیام همگانی", callback_data="broadcast")],
+        [InlineKeyboardButton("📢 پیام همگانی", callback_data="broadcast_prompt")],
     ]
     await update.message.reply_text("👮 پنل ادمین:", reply_markup=InlineKeyboardMarkup(keyboard))
 
-async def stats(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    if update.message.from_user.id != ADMIN_ID:
+async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    query = update.callback_query
+    await query.answer()
+    if query.from_user.id != ADMIN_ID:
+        await query.edit_message_text("❌ دسترسی ندارید!")
         return
-    await update.message.reply_text(f"📊 تعداد کاربران: {len(users)} نفر")
+    if query.data == "stats":
+        await query.edit_message_text(f"📊 تعداد کاربران: {len(users)} نفر")
+    elif query.data == "broadcast_prompt":
+        await query.edit_message_text("برای پیام همگانی بنویس:\n/broadcast متن_پیام")
 
 async def broadcast(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if update.message.from_user.id != ADMIN_ID:
@@ -84,7 +90,7 @@ async def download(update: Update, context: ContextTypes.DEFAULT_TYPE):
     users.add(user_id)
     if not await check_member(update, context):
         keyboard = [[InlineKeyboardButton("عضویت در کانال 📢", url="https://t.me/Ya4DeT")]]
-        await update.message.reply_text("⚠️ برای استفاده از ربات باید در کانال ما عضو بشی!", reply_markup=InlineKeyboardMarkup(keyboard))
+        await update.message.reply_text("⚠ برای استفاده از ربات باید در کانال ما عضو بشی!", reply_markup=InlineKeyboardMarkup(keyboard))
         return
     url = await get_url(update)
     if not url or not url.startswith("http"):
@@ -147,9 +153,9 @@ TOKEN = os.environ["TOKEN"]
 app = ApplicationBuilder().token(TOKEN).build()
 app.add_handler(CommandHandler("start", start))
 app.add_handler(CommandHandler("admin", admin))
-app.add_handler(CommandHandler("stats", stats))
 app.add_handler(CommandHandler("broadcast", broadcast))
 app.add_handler(CommandHandler("ban", ban))
 app.add_handler(CommandHandler("music", music))
+app.add_handler(CallbackQueryHandler(button_handler))
 app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, download))
 app.run_polling()
