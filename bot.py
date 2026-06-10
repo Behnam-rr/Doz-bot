@@ -24,7 +24,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         keyboard = [[InlineKeyboardButton("عضویت در کانال 📢", url="https://t.me/Ya4DeT")]]
         await update.message.reply_text("⚠️ برای استفاده از ربات باید در کانال ما عضو بشی!", reply_markup=InlineKeyboardMarkup(keyboard))
         return
-    await update.message.reply_text("سلام! 👋\n\nلینک بفرست تا دانلود کنم:\n🎬 ویدیو: TikTok, Instagram\n🎵 موزیک: /music لینک_ساندکلود")
+    await update.message.reply_text("سلام! 👋\n\nلینک بفرست تا دانلود کنم:\n🎬 ویدیو: TikTok, Instagram, Twitter, Pinterest\n🎵 موزیک: /music لینک_ساندکلود")
 
 async def admin(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if update.message.from_user.id != ADMIN_ID:
@@ -90,12 +90,12 @@ async def download(update: Update, context: ContextTypes.DEFAULT_TYPE):
     users.add(user_id)
     if not await check_member(update, context):
         keyboard = [[InlineKeyboardButton("عضویت در کانال 📢", url="https://t.me/Ya4DeT")]]
-        await update.message.reply_text("⚠ برای استفاده از ربات باید در کانال ما عضو بشی!", reply_markup=InlineKeyboardMarkup(keyboard))
+        await update.message.reply_text("⚠️ برای استفاده از ربات باید در کانال ما عضو بشی!", reply_markup=InlineKeyboardMarkup(keyboard))
         return
     url = await get_url(update)
     if not url or not url.startswith("http"):
         return
-    msg = await update.message.reply_text("⏳ دارم ویدیو رو دانلود میکنم...")
+    msg = await update.message.reply_text("⏳ دارم دانلود میکنم...")
     try:
         ydl_opts = {
             'format': 'best',
@@ -105,10 +105,16 @@ async def download(update: Update, context: ContextTypes.DEFAULT_TYPE):
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             info = ydl.extract_info(url, download=True)
             filename = ydl.prepare_filename(info)
+        
+        ext = filename.split('.')[-1].lower()
         width = info.get('width')
         height = info.get('height')
+        
         with open(filename, 'rb') as f:
-            await update.message.reply_video(f, width=width, height=height, supports_streaming=True)
+            if ext in ['jpg', 'jpeg', 'png', 'webp']:
+                await update.message.reply_photo(f)
+            else:
+                await update.message.reply_video(f, width=width, height=height, supports_streaming=True)
         os.remove(filename)
         await msg.delete()
     except Exception as e:
