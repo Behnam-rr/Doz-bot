@@ -6,6 +6,7 @@ from telegram.ext import ApplicationBuilder, MessageHandler, CommandHandler, Cal
 CHANNEL = "@Ya4DeT"
 ADMIN_ID = 6517505210
 users = set()
+waiting_for_video = set()
 
 async def check_member(update: Update, context):
     user_id = update.message.from_user.id
@@ -24,7 +25,39 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         keyboard = [[InlineKeyboardButton("عضویت در کانال 📢", url="https://t.me/Ya4DeT")]]
         await update.message.reply_text("⚠️ برای استفاده از ربات باید در کانال ما عضو بشی!", reply_markup=InlineKeyboardMarkup(keyboard))
         return
-    await update.message.reply_text("سلام! 👋\n\nلینک بفرست تا دانلود کنم:\n🎬 ویدیو: TikTok, Instagram\n🎵 موزیک: /music لینک_ساندکلود")
+    await update.message.reply_text("سلام! 👋\n\nلینک بفرست تا دانلود کنم:\n🎬 ویدیو: TikTok, Instagram\n🎵 موزیک: /music لینک_ساندکلود\n🎤 تبدیل ویدیو به MP3: /tomp3")
+
+async def tomp3_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if not await check_member(update, context):
+        keyboard = [[InlineKeyboardButton("عضویت در کانال 📢", url="https://t.me/Ya4DeT")]]
+        await update.message.reply_text("⚠️ برای استفاده از ربات باید در کانال ما عضو بشی!", reply_markup=InlineKeyboardMarkup(keyboard))
+        return
+    waiting_for_video.add(update.message.from_user.id)
+    await update.message.reply_text("🎬 ویدیو رو بفرست تا به MP3 و ویس تبدیل کنم!")
+
+async def handle_video(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user_id = update.message.from_user.id
+    if user_id not in waiting_for_video:
+        return
+    waiting_for_video.discard(user_id)
+    msg = await update.message.reply_text("⏳ دارم تبدیل میکنم...")
+    try:
+        video = update.message.video or update.message.document
+        file = await context.bot.get_file(video.file_id)
+        video_path = f"/tmp/video_{user_id}.mp4"
+        await file.download_to_drive(video_path)
+        mp3_path = f"/tmp/audio_{user_id}.mp3"
+        os.system(f"ffmpeg -i {video_path} -q:a 0 -map a {mp3_path} -y")
+        with open(mp3_path, 'rb') as f:
+            audio_data = f.read()
+        import io
+        await update.message.reply_audio(io.BytesIO(audio_data), filename="audio.mp3")
+        await update.message.reply_voice(io.BytesIO(audio_data))
+        os.remove(video_path)
+        os.remove(mp3_path)
+        await msg.delete()
+    except Exception as e:
+        await msg.edit_text("❌ خطا! ویدیو رو دوباره بفرست.")
 
 async def admin(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if update.message.from_user.id != ADMIN_ID:
@@ -160,6 +193,8 @@ app.add_handler(CommandHandler("admin", admin))
 app.add_handler(CommandHandler("broadcast", broadcast))
 app.add_handler(CommandHandler("ban", ban))
 app.add_handler(CommandHandler("music", music))
+app.add_handler(CommandHandler("tomp3", tomp3_cmd))
+app.add_handler(MessageHandler(filters.VIDEO | filters.Document.VIDEO, handle_video))
 app.add_handler(CallbackQueryHandler(button_handler))
 app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, download))
 app.run_polling()
