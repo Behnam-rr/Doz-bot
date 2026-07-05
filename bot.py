@@ -1,4 +1,5 @@
 import os
+import io
 import yt_dlp
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import ApplicationBuilder, MessageHandler, CommandHandler, CallbackQueryHandler, filters, ContextTypes
@@ -7,6 +8,8 @@ CHANNEL = "@Ya4DeT"
 ADMIN_ID = 6517505210
 users = set()
 waiting_for_video = set()
+waiting_for_support = set()
+support_users = {}
 
 async def check_member(update: Update, context):
     user_id = update.message.from_user.id
@@ -25,7 +28,15 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         keyboard = [[InlineKeyboardButton("عضویت در کانال 📢", url="https://t.me/Ya4DeT")]]
         await update.message.reply_text("⚠️ برای استفاده از ربات باید در کانال ما عضو بشی!", reply_markup=InlineKeyboardMarkup(keyboard))
         return
-    await update.message.reply_text("سلام! 👋\n\nلینک بفرست تا دانلود کنم:\n🎬 ویدیو: TikTok, Instagram\n🎵 موزیک: /music لینک_ساندکلود\n🎤 تبدیل ویدیو به MP3: /tomp3")
+    await update.message.reply_text("سلام! 👋\n\nلینک بفرست تا دانلود کنم:\n🎬 ویدیو: TikTok, Instagram\n🎵 موزیک: /music لینک_ساندکلود\n🎤 تبدیل ویدیو به MP3: /tomp3\n💬 پشتیبانی: /support")
+
+async def support_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if not await check_member(update, context):
+        keyboard = [[InlineKeyboardButton("عضویت در کانال 📢", url="https://t.me/Ya4DeT")]]
+        await update.message.reply_text("⚠️ برای استفاده از ربات باید در کانال ما عضو بشی!", reply_markup=InlineKeyboardMarkup(keyboard))
+        return
+    waiting_for_support.add(update.message.from_user.id)
+    await update.message.reply_text("💬 پیامت رو بنویس، به ادمین میرسونم!")
 
 async def tomp3_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not await check_member(update, context):
@@ -50,7 +61,6 @@ async def handle_video(update: Update, context: ContextTypes.DEFAULT_TYPE):
         os.system(f"ffmpeg -i {video_path} -q:a 0 -map a {mp3_path} -y")
         with open(mp3_path, 'rb') as f:
             audio_data = f.read()
-        import io
         await update.message.reply_audio(io.BytesIO(audio_data), filename="audio.mp3")
         await update.message.reply_voice(io.BytesIO(audio_data))
         os.remove(video_path)
@@ -118,8 +128,28 @@ async def get_url(update):
                 return update.message.text[entity.offset:entity.offset + entity.length]
     return None
 
-async def download(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def handle_text(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.message.from_user.id
+    text = update.message.text
+
+    # پشتیبانی
+    if user_id in waiting_for_support:
+        waiting_for_support.discard(user_id)
+        username = update.message.from_user.username or "بدون یوزرنیم"
+        name = update.message.from_user.first_name or ""
+        await context.bot.send_message(
+            ADMIN_ID,
+            f"📩 پیام پشتیبانی:\n👤 {name} (@{username})\n🆔 ID: {user_id}\n\n{text}"
+        )
+        support_users[user_id] = user_id
+        await update.message.reply_text("✅ پیامت به ادمین رسید!")
+        return
+
+    # جواب ادمین به کاربر
+    if user_id == ADMIN_ID and context.args:
+        pass
+
+    # دانلود
     users.add(user_id)
     if not await check_member(update, context):
         keyboard = [[InlineKeyboardButton("عضویت در کانال 📢", url="https://t.me/Ya4DeT")]]
@@ -186,6 +216,20 @@ async def music(update: Update, context: ContextTypes.DEFAULT_TYPE):
     except Exception as e:
         await msg.edit_text("❌ خطا! لینک رو چک کن.")
 
+async def reply_to_user(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if update.message.from_user.id != ADMIN_ID:
+        return
+    if not context.args or len(context.args) < 2:
+        await update.message.reply_text("استفاده: /reply ID پیام")
+        return
+    try:
+        target_id = int(context.args[0])
+        text = " ".join(context.args[1:])
+        await context.bot.send_message(target_id, f"📨 پیام از ادمین:\n{text}")
+        await update.message.reply_text("✅ پیام فرستاده شد!")
+    except:
+        await update.message.reply_text("❌ خطا!")
+
 TOKEN = os.environ["TOKEN"]
 app = ApplicationBuilder().token(TOKEN).build()
 app.add_handler(CommandHandler("start", start))
@@ -194,7 +238,9 @@ app.add_handler(CommandHandler("broadcast", broadcast))
 app.add_handler(CommandHandler("ban", ban))
 app.add_handler(CommandHandler("music", music))
 app.add_handler(CommandHandler("tomp3", tomp3_cmd))
+app.add_handler(CommandHandler("support", support_cmd))
+app.add_handler(CommandHandler("reply", reply_to_user))
 app.add_handler(MessageHandler(filters.VIDEO | filters.Document.VIDEO, handle_video))
 app.add_handler(CallbackQueryHandler(button_handler))
-app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, download))
+app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_text))
 app.run_polling()
