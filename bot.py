@@ -9,7 +9,78 @@ ADMIN_ID = 6517505210
 users = set()
 waiting_for_video = set()
 waiting_for_support = set()
-support_users = {}
+user_lang = {}
+
+TEXTS = {
+    'fa': {
+        'join': '⚠️ برای استفاده از ربات باید در کانال ما عضو بشی!',
+        'join_btn': 'عضویت در کانال 📢',
+        'start': 'سلام! 👋\n\nلینک بفرست تا دانلود کنم:\n🎬 ویدیو: TikTok, Instagram\n🎵 موزیک: /music لینک\n🎤 تبدیل ویدیو: /tomp3\n💬 پشتیبانی: /support\n🌐 زبان: /lang',
+        'downloading': '⏳ دارم دانلود میکنم...',
+        'error': '❌ خطا! لینک رو چک کن.',
+        'converting': '⏳ دارم تبدیل میکنم...',
+        'send_video': '🎬 ویدیو رو بفرست!',
+        'convert_error': '❌ خطا! ویدیو رو دوباره بفرست.',
+        'support_msg': '💬 پیامت رو بنویس، به ادمین میرسونم!',
+        'support_sent': '✅ پیامت به ادمین رسید!',
+        'music_help': 'لینک رو بعد از /music بنویس!',
+        'music_downloading': '⏳ دارم موزیک رو دانلود میکنم...',
+        'choose_lang': '🌐 زبان رو انتخاب کن:',
+        'lang_set': '✅ زبان تغییر کرد!',
+    },
+    'en': {
+        'join': '⚠️ You must join our channel to use this bot!',
+        'join_btn': 'Join Channel 📢',
+        'start': 'Hello! 👋\n\nSend a link to download:\n🎬 Video: TikTok, Instagram\n🎵 Music: /music link\n🎤 Convert video: /tomp3\n💬 Support: /support\n🌐 Language: /lang',
+        'downloading': '⏳ Downloading...',
+        'error': '❌ Error! Check the link.',
+        'converting': '⏳ Converting...',
+        'send_video': '🎬 Send me a video!',
+        'convert_error': '❌ Error! Send the video again.',
+        'support_msg': '💬 Write your message, I will send it to admin!',
+        'support_sent': '✅ Your message was sent to admin!',
+        'music_help': 'Send link after /music!',
+        'music_downloading': '⏳ Downloading music...',
+        'choose_lang': '🌐 Choose your language:',
+        'lang_set': '✅ Language changed!',
+    },
+    'ku': {
+        'join': '⚠️ دەبێت بەندە بیت بە کەناڵەکەمان بۆ بەکارهێنانی بۆتەکە!',
+        'join_btn': 'بەندەبوون بە کەناڵ 📢',
+        'start': 'سڵاو! 👋\n\nلینک بنێرە بۆ داونلۆدکردن:\n🎬 ڤیدیۆ: TikTok, Instagram\n🎵 موزیک: /music لینک\n🎤 گۆڕینی ڤیدیۆ: /tomp3\n💬 پاڵپشتی: /support\n🌐 زمان: /lang',
+        'downloading': '⏳ داونلۆد دەکەم...',
+        'error': '❌ هەڵە! لینکەکە بپشکنە.',
+        'converting': '⏳ دەیگۆڕم...',
+        'send_video': '🎬 ڤیدیۆ بنێرە!',
+        'convert_error': '❌ هەڵە! ڤیدیۆکە دووبارە بنێرە.',
+        'support_msg': '💬 پەیامەکەت بنووسە!',
+        'support_sent': '✅ پەیامەکەت گەیشتە ئەدمین!',
+        'music_help': 'لینک بنووسە دوای /music!',
+        'music_downloading': '⏳ موزیک داونلۆد دەکەم...',
+        'choose_lang': '🌐 زمانەکەت هەڵبژێرە:',
+        'lang_set': '✅ زمان گۆڕدرا!',
+    },
+    'ar': {
+        'join': '⚠️ يجب عليك الانضمام إلى قناتنا لاستخدام البوت!',
+        'join_btn': 'انضم إلى القناة 📢',
+        'start': 'مرحباً! 👋\n\nأرسل رابطاً للتحميل:\n🎬 فيديو: TikTok, Instagram\n🎵 موسيقى: /music رابط\n🎤 تحويل الفيديو: /tomp3\n💬 الدعم: /support\n🌐 اللغة: /lang',
+        'downloading': '⏳ جاري التحميل...',
+        'error': '❌ خطأ! تحقق من الرابط.',
+        'converting': '⏳ جاري التحويل...',
+        'send_video': '🎬 أرسل الفيديو!',
+        'convert_error': '❌ خطأ! أرسل الفيديو مرة أخرى.',
+        'support_msg': '💬 اكتب رسالتك، سأرسلها إلى المشرف!',
+        'support_sent': '✅ تم إرسال رسالتك إلى المشرف!',
+        'music_help': 'أرسل الرابط بعد /music!',
+        'music_downloading': '⏳ جاري تحميل الموسيقى...',
+        'choose_lang': '🌐 اختر لغتك:',
+        'lang_set': '✅ تم تغيير اللغة!',
+    },
+}
+
+def t(user_id, key):
+    lang = user_lang.get(user_id, 'fa')
+    return TEXTS.get(lang, TEXTS['fa']).get(key, '')
 
 async def check_member(update: Update, context):
     user_id = update.message.from_user.id
@@ -25,33 +96,45 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.message.from_user.id
     users.add(user_id)
     if not await check_member(update, context):
-        keyboard = [[InlineKeyboardButton("عضویت در کانال 📢", url="https://t.me/Ya4DeT")]]
-        await update.message.reply_text("⚠️ برای استفاده از ربات باید در کانال ما عضو بشی!", reply_markup=InlineKeyboardMarkup(keyboard))
+        keyboard = [[InlineKeyboardButton(t(user_id, 'join_btn'), url="https://t.me/Ya4DeT")]]
+        await update.message.reply_text(t(user_id, 'join'), reply_markup=InlineKeyboardMarkup(keyboard))
         return
-    await update.message.reply_text("سلام! 👋\n\nلینک بفرست تا دانلود کنم:\n🎬 ویدیو: TikTok, Instagram\n🎵 موزیک: /music لینک_ساندکلود\n🎤 تبدیل ویدیو به MP3: /tomp3\n💬 پشتیبانی: /support")
+    await update.message.reply_text(t(user_id, 'start'))
+
+async def lang_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user_id = update.message.from_user.id
+    keyboard = [
+        [InlineKeyboardButton("🇮🇷 فارسی", callback_data="lang_fa")],
+        [InlineKeyboardButton("🇬🇧 English", callback_data="lang_en")],
+        [InlineKeyboardButton("🏳️ کوردی سۆرانی", callback_data="lang_ku")],
+        [InlineKeyboardButton("🇸🇦 العربية", callback_data="lang_ar")],
+    ]
+    await update.message.reply_text(t(user_id, 'choose_lang'), reply_markup=InlineKeyboardMarkup(keyboard))
 
 async def support_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user_id = update.message.from_user.id
     if not await check_member(update, context):
-        keyboard = [[InlineKeyboardButton("عضویت در کانال 📢", url="https://t.me/Ya4DeT")]]
-        await update.message.reply_text("⚠️ برای استفاده از ربات باید در کانال ما عضو بشی!", reply_markup=InlineKeyboardMarkup(keyboard))
+        keyboard = [[InlineKeyboardButton(t(user_id, 'join_btn'), url="https://t.me/Ya4DeT")]]
+        await update.message.reply_text(t(user_id, 'join'), reply_markup=InlineKeyboardMarkup(keyboard))
         return
-    waiting_for_support.add(update.message.from_user.id)
-    await update.message.reply_text("💬 پیامت رو بنویس، به ادمین میرسونم!")
+    waiting_for_support.add(user_id)
+    await update.message.reply_text(t(user_id, 'support_msg'))
 
 async def tomp3_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user_id = update.message.from_user.id
     if not await check_member(update, context):
-        keyboard = [[InlineKeyboardButton("عضویت در کانال 📢", url="https://t.me/Ya4DeT")]]
-        await update.message.reply_text("⚠️ برای استفاده از ربات باید در کانال ما عضو بشی!", reply_markup=InlineKeyboardMarkup(keyboard))
+        keyboard = [[InlineKeyboardButton(t(user_id, 'join_btn'), url="https://t.me/Ya4DeT")]]
+        await update.message.reply_text(t(user_id, 'join'), reply_markup=InlineKeyboardMarkup(keyboard))
         return
-    waiting_for_video.add(update.message.from_user.id)
-    await update.message.reply_text("🎬 ویدیو رو بفرست تا به MP3 و ویس تبدیل کنم!")
+    waiting_for_video.add(user_id)
+    await update.message.reply_text(t(user_id, 'send_video'))
 
 async def handle_video(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.message.from_user.id
     if user_id not in waiting_for_video:
         return
     waiting_for_video.discard(user_id)
-    msg = await update.message.reply_text("⏳ دارم تبدیل میکنم...")
+    msg = await update.message.reply_text(t(user_id, 'converting'))
     try:
         video = update.message.video or update.message.document
         file = await context.bot.get_file(video.file_id)
@@ -67,7 +150,7 @@ async def handle_video(update: Update, context: ContextTypes.DEFAULT_TYPE):
         os.remove(mp3_path)
         await msg.delete()
     except Exception as e:
-        await msg.edit_text("❌ خطا! ویدیو رو دوباره بفرست.")
+        await msg.edit_text(t(user_id, 'convert_error'))
 
 async def admin(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if update.message.from_user.id != ADMIN_ID:
@@ -82,7 +165,15 @@ async def admin(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
-    if query.from_user.id != ADMIN_ID:
+    user_id = query.from_user.id
+
+    if query.data.startswith("lang_"):
+        lang = query.data.split("_")[1]
+        user_lang[user_id] = lang
+        await query.edit_message_text(t(user_id, 'lang_set'))
+        return
+
+    if user_id != ADMIN_ID:
         await query.edit_message_text("❌ دسترسی ندارید!")
         return
     if query.data == "stats":
@@ -119,6 +210,20 @@ async def ban(update: Update, context: ContextTypes.DEFAULT_TYPE):
     except:
         await update.message.reply_text("❌ ID اشتباهه!")
 
+async def reply_to_user(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if update.message.from_user.id != ADMIN_ID:
+        return
+    if not context.args or len(context.args) < 2:
+        await update.message.reply_text("استفاده: /reply ID پیام")
+        return
+    try:
+        target_id = int(context.args[0])
+        text = " ".join(context.args[1:])
+        await context.bot.send_message(target_id, f"📨 پیام از ادمین:\n{text}")
+        await update.message.reply_text("✅ پیام فرستاده شد!")
+    except:
+        await update.message.reply_text("❌ خطا!")
+
 async def get_url(update):
     if update.message.text:
         return update.message.text.strip()
@@ -130,35 +235,27 @@ async def get_url(update):
 
 async def handle_text(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.message.from_user.id
-    text = update.message.text
 
-    # پشتیبانی
     if user_id in waiting_for_support:
         waiting_for_support.discard(user_id)
         username = update.message.from_user.username or "بدون یوزرنیم"
         name = update.message.from_user.first_name or ""
         await context.bot.send_message(
             ADMIN_ID,
-            f"📩 پیام پشتیبانی:\n👤 {name} (@{username})\n🆔 ID: {user_id}\n\n{text}"
+            f"📩 پیام پشتیبانی:\n👤 {name} (@{username})\n🆔 ID: {user_id}\n\n{update.message.text}"
         )
-        support_users[user_id] = user_id
-        await update.message.reply_text("✅ پیامت به ادمین رسید!")
+        await update.message.reply_text(t(user_id, 'support_sent'))
         return
 
-    # جواب ادمین به کاربر
-    if user_id == ADMIN_ID and context.args:
-        pass
-
-    # دانلود
     users.add(user_id)
     if not await check_member(update, context):
-        keyboard = [[InlineKeyboardButton("عضویت در کانال 📢", url="https://t.me/Ya4DeT")]]
-        await update.message.reply_text("⚠️ برای استفاده از ربات باید در کانال ما عضو بشی!", reply_markup=InlineKeyboardMarkup(keyboard))
+        keyboard = [[InlineKeyboardButton(t(user_id, 'join_btn'), url="https://t.me/Ya4DeT")]]
+        await update.message.reply_text(t(user_id, 'join'), reply_markup=InlineKeyboardMarkup(keyboard))
         return
     url = await get_url(update)
     if not url or not url.startswith("http"):
         return
-    msg = await update.message.reply_text("⏳ دارم دانلود میکنم...")
+    msg = await update.message.reply_text(t(user_id, 'downloading'))
     try:
         ydl_opts = {
             'format': 'best',
@@ -179,14 +276,14 @@ async def handle_text(update: Update, context: ContextTypes.DEFAULT_TYPE):
         os.remove(filename)
         await msg.delete()
     except Exception as e:
-        await msg.edit_text("❌ خطا! لینک رو چک کن.")
+        await msg.edit_text(t(user_id, 'error'))
 
 async def music(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.message.from_user.id
     users.add(user_id)
     if not await check_member(update, context):
-        keyboard = [[InlineKeyboardButton("عضویت در کانال 📢", url="https://t.me/Ya4DeT")]]
-        await update.message.reply_text("⚠️ برای استفاده از ربات باید در کانال ما عضو بشی!", reply_markup=InlineKeyboardMarkup(keyboard))
+        keyboard = [[InlineKeyboardButton(t(user_id, 'join_btn'), url="https://t.me/Ya4DeT")]]
+        await update.message.reply_text(t(user_id, 'join'), reply_markup=InlineKeyboardMarkup(keyboard))
         return
     url = None
     if context.args:
@@ -196,9 +293,9 @@ async def music(update: Update, context: ContextTypes.DEFAULT_TYPE):
             if entity.type == "url":
                 url = update.message.text[entity.offset:entity.offset + entity.length]
     if not url:
-        await update.message.reply_text("لینک رو بعد از /music بنویس!\nمثال: /music https://soundcloud.com/...")
+        await update.message.reply_text(t(user_id, 'music_help'))
         return
-    msg = await update.message.reply_text("⏳ دارم موزیک رو دانلود میکنم...")
+    msg = await update.message.reply_text(t(user_id, 'music_downloading'))
     try:
         ydl_opts = {
             'format': 'bestaudio/best',
@@ -214,21 +311,7 @@ async def music(update: Update, context: ContextTypes.DEFAULT_TYPE):
         os.remove(filename)
         await msg.delete()
     except Exception as e:
-        await msg.edit_text("❌ خطا! لینک رو چک کن.")
-
-async def reply_to_user(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    if update.message.from_user.id != ADMIN_ID:
-        return
-    if not context.args or len(context.args) < 2:
-        await update.message.reply_text("استفاده: /reply ID پیام")
-        return
-    try:
-        target_id = int(context.args[0])
-        text = " ".join(context.args[1:])
-        await context.bot.send_message(target_id, f"📨 پیام از ادمین:\n{text}")
-        await update.message.reply_text("✅ پیام فرستاده شد!")
-    except:
-        await update.message.reply_text("❌ خطا!")
+        await msg.edit_text(t(user_id, 'error'))
 
 TOKEN = os.environ["TOKEN"]
 app = ApplicationBuilder().token(TOKEN).build()
@@ -240,6 +323,7 @@ app.add_handler(CommandHandler("music", music))
 app.add_handler(CommandHandler("tomp3", tomp3_cmd))
 app.add_handler(CommandHandler("support", support_cmd))
 app.add_handler(CommandHandler("reply", reply_to_user))
+app.add_handler(CommandHandler("lang", lang_cmd))
 app.add_handler(MessageHandler(filters.VIDEO | filters.Document.VIDEO, handle_video))
 app.add_handler(CallbackQueryHandler(button_handler))
 app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_text))
