@@ -9,13 +9,14 @@ ADMIN_ID = 6517505210
 users = set()
 waiting_for_video = set()
 waiting_for_support = set()
+waiting_for_search = set()
 user_lang = {}
 
 TEXTS = {
     'fa': {
         'join': '⚠️ برای استفاده از ربات باید در کانال ما عضو بشی!',
         'join_btn': 'عضویت در کانال 📢',
-        'start': 'سلام! 👋\n\nلینک بفرست تا دانلود کنم:\n🎬 ویدیو: TikTok, Instagram\n🎵 موزیک: /music لینک\n🎤 تبدیل ویدیو: /tomp3\n💬 پشتیبانی: /support\n🌐 زبان: /lang',
+        'start': 'سلام! 👋\n\nلینک بفرست تا دانلود کنم:\n🎬 ویدیو: TikTok, Instagram\n🎵 موزیک: /music لینک\n🔍 جستجو آهنگ: /search\n🎤 تبدیل ویدیو: /tomp3\n💬 پشتیبانی: /support\n🌐 زبان: /lang',
         'downloading': '⏳ دارم دانلود میکنم...',
         'error': '❌ خطا! لینک رو چک کن.',
         'converting': '⏳ دارم تبدیل میکنم...',
@@ -27,54 +28,70 @@ TEXTS = {
         'music_downloading': '⏳ دارم موزیک رو دانلود میکنم...',
         'choose_lang': '🌐 زبان رو انتخاب کن:',
         'lang_set': '✅ زبان تغییر کرد!',
+        'search_prompt': '🔍 اسم آهنگ رو بنویس:',
+        'searching': '🔍 دارم سرچ میکنم...',
+        'search_results': '🎵 نتایج جستجو:',
+        'no_results': '❌ نتیجه‌ای پیدا نشد!',
     },
     'en': {
         'join': '⚠️ You must join our channel to use this bot!',
         'join_btn': 'Join Channel 📢',
-        'start': 'Hello! 👋\n\nSend a link to download:\n🎬 Video: TikTok, Instagram\n🎵 Music: /music link\n🎤 Convert video: /tomp3\n💬 Support: /support\n🌐 Language: /lang',
+        'start': 'Hello! 👋\n\nSend a link to download:\n🎬 Video: TikTok, Instagram\n🎵 Music: /music link\n🔍 Search song: /search\n🎤 Convert video: /tomp3\n💬 Support: /support\n🌐 Language: /lang',
         'downloading': '⏳ Downloading...',
         'error': '❌ Error! Check the link.',
         'converting': '⏳ Converting...',
         'send_video': '🎬 Send me a video!',
         'convert_error': '❌ Error! Send the video again.',
-        'support_msg': '💬 Write your message, I will send it to admin!',
+        'support_msg': '💬 Write your message!',
         'support_sent': '✅ Your message was sent to admin!',
         'music_help': 'Send link after /music!',
         'music_downloading': '⏳ Downloading music...',
         'choose_lang': '🌐 Choose your language:',
         'lang_set': '✅ Language changed!',
+        'search_prompt': '🔍 Write the song name:',
+        'searching': '🔍 Searching...',
+        'search_results': '🎵 Search results:',
+        'no_results': '❌ No results found!',
     },
     'ku': {
-        'join': '⚠️ دەبێت بەندە بیت بە کەناڵەکەمان بۆ بەکارهێنانی بۆتەکە!',
+        'join': '⚠️ دەبێت بەندە بیت بە کەناڵەکەمان!',
         'join_btn': 'بەندەبوون بە کەناڵ 📢',
-        'start': 'سڵاو! 👋\n\nلینک بنێرە بۆ داونلۆدکردن:\n🎬 ڤیدیۆ: TikTok, Instagram\n🎵 موزیک: /music لینک\n🎤 گۆڕینی ڤیدیۆ: /tomp3\n💬 پاڵپشتی: /support\n🌐 زمان: /lang',
+        'start': 'سڵاو! 👋\n\nلینک بنێرە:\n🎬 ڤیدیۆ: TikTok, Instagram\n🎵 موزیک: /music لینک\n🔍 گەڕان: /search\n🎤 گۆڕین: /tomp3\n💬 پاڵپشتی: /support\n🌐 زمان: /lang',
         'downloading': '⏳ داونلۆد دەکەم...',
         'error': '❌ هەڵە! لینکەکە بپشکنە.',
         'converting': '⏳ دەیگۆڕم...',
         'send_video': '🎬 ڤیدیۆ بنێرە!',
-        'convert_error': '❌ هەڵە! ڤیدیۆکە دووبارە بنێرە.',
+        'convert_error': '❌ هەڵە! دووبارە بنێرە.',
         'support_msg': '💬 پەیامەکەت بنووسە!',
         'support_sent': '✅ پەیامەکەت گەیشتە ئەدمین!',
         'music_help': 'لینک بنووسە دوای /music!',
         'music_downloading': '⏳ موزیک داونلۆد دەکەم...',
         'choose_lang': '🌐 زمانەکەت هەڵبژێرە:',
         'lang_set': '✅ زمان گۆڕدرا!',
+        'search_prompt': '🔍 ناوی گۆرانی بنووسە:',
+        'searching': '🔍 دەگەڕێم...',
+        'search_results': '🎵 ئەنجامەکان:',
+        'no_results': '❌ ئەنجامێک نەدۆزرایەوە!',
     },
     'ar': {
-        'join': '⚠️ يجب عليك الانضمام إلى قناتنا لاستخدام البوت!',
+        'join': '⚠️ يجب عليك الانضمام إلى قناتنا!',
         'join_btn': 'انضم إلى القناة 📢',
-        'start': 'مرحباً! 👋\n\nأرسل رابطاً للتحميل:\n🎬 فيديو: TikTok, Instagram\n🎵 موسيقى: /music رابط\n🎤 تحويل الفيديو: /tomp3\n💬 الدعم: /support\n🌐 اللغة: /lang',
+        'start': 'مرحباً! 👋\n\nأرسل رابطاً:\n🎬 فيديو: TikTok, Instagram\n🎵 موسيقى: /music رابط\n🔍 بحث: /search\n🎤 تحويل: /tomp3\n💬 الدعم: /support\n🌐 اللغة: /lang',
         'downloading': '⏳ جاري التحميل...',
         'error': '❌ خطأ! تحقق من الرابط.',
         'converting': '⏳ جاري التحويل...',
         'send_video': '🎬 أرسل الفيديو!',
         'convert_error': '❌ خطأ! أرسل الفيديو مرة أخرى.',
-        'support_msg': '💬 اكتب رسالتك، سأرسلها إلى المشرف!',
-        'support_sent': '✅ تم إرسال رسالتك إلى المشرف!',
+        'support_msg': '💬 اكتب رسالتك!',
+        'support_sent': '✅ تم إرسال رسالتك!',
         'music_help': 'أرسل الرابط بعد /music!',
         'music_downloading': '⏳ جاري تحميل الموسيقى...',
         'choose_lang': '🌐 اختر لغتك:',
         'lang_set': '✅ تم تغيير اللغة!',
+        'search_prompt': '🔍 اكتب اسم الأغنية:',
+        'searching': '🔍 جاري البحث...',
+        'search_results': '🎵 نتائج البحث:',
+        'no_results': '❌ لم يتم العثور على نتائج!',
     },
 }
 
@@ -106,10 +123,19 @@ async def lang_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
     keyboard = [
         [InlineKeyboardButton("🇮🇷 فارسی", callback_data="lang_fa")],
         [InlineKeyboardButton("🇬🇧 English", callback_data="lang_en")],
-        [InlineKeyboardButton("🏳️ کوردی سۆرانی", callback_data="lang_ku")],
+        [InlineKeyboardButton("🏳 کوردی سۆرانی", callback_data="lang_ku")],
         [InlineKeyboardButton("🇸🇦 العربية", callback_data="lang_ar")],
     ]
     await update.message.reply_text(t(user_id, 'choose_lang'), reply_markup=InlineKeyboardMarkup(keyboard))
+
+async def search_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user_id = update.message.from_user.id
+    if not await check_member(update, context):
+        keyboard = [[InlineKeyboardButton(t(user_id, 'join_btn'), url="https://t.me/Ya4DeT")]]
+        await update.message.reply_text(t(user_id, 'join'), reply_markup=InlineKeyboardMarkup(keyboard))
+        return
+    waiting_for_search.add(user_id)
+    await update.message.reply_text(t(user_id, 'search_prompt'))
 
 async def support_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.message.from_user.id
@@ -171,6 +197,27 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         lang = query.data.split("_")[1]
         user_lang[user_id] = lang
         await query.edit_message_text(t(user_id, 'lang_set'))
+        return
+
+    if query.data.startswith("dl_"):
+        url = query.data[3:]
+        msg = await query.edit_message_text(t(user_id, 'music_downloading'))
+        try:
+            ydl_opts = {
+                'format': 'bestaudio/best',
+                'outtmpl': '/tmp/%(title)s.%(ext)s',
+                'postprocessors': [{'key': 'FFmpegExtractAudio', 'preferredcodec': 'mp3'}],
+                'quiet': True,
+            }
+            with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+                info = ydl.extract_info(url, download=True)
+                filename = ydl.prepare_filename(info).replace('.webm', '.mp3').replace('.m4a', '.mp3')
+            with open(filename, 'rb') as f:
+                await context.bot.send_audio(user_id, f, title=info.get('title', 'موزیک'))
+            os.remove(filename)
+            await msg.delete()
+        except:
+            await msg.edit_text(t(user_id, 'error'))
         return
 
     if user_id != ADMIN_ID:
@@ -235,6 +282,7 @@ async def get_url(update):
 
 async def handle_text(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.message.from_user.id
+    text = update.message.text
 
     if user_id in waiting_for_support:
         waiting_for_support.discard(user_id)
@@ -242,9 +290,54 @@ async def handle_text(update: Update, context: ContextTypes.DEFAULT_TYPE):
         name = update.message.from_user.first_name or ""
         await context.bot.send_message(
             ADMIN_ID,
-            f"📩 پیام پشتیبانی:\n👤 {name} (@{username})\n🆔 ID: {user_id}\n\n{update.message.text}"
+            f"📩 پیام پشتیبانی:\n👤 {name} (@{username})\n🆔 ID: {user_id}\n\n{text}"
         )
         await update.message.reply_text(t(user_id, 'support_sent'))
+        return
+
+    if user_id in waiting_for_search:
+        waiting_for_search.discard(user_id)
+        msg = await update.message.reply_text(t(user_id, 'searching'))
+        try:
+            results = []
+            # سرچ در YouTube Music
+            ydl_opts = {
+                'quiet': True,
+                'extract_flat': True,
+                'default_search': 'ytsearch5',
+            }
+            with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+                info = ydl.extract_info(f"ytsearch5:{text}", download=False)
+                for entry in info.get('entries', [])[:3]:
+                    results.append({
+                        'title': entry.get('title', 'نامشخص'),
+                        'url': entry.get('url') or f"https://youtube.com/watch?v={entry.get('id')}",
+                        'source': 'YouTube'
+                    })
+
+            # سرچ در SoundCloud
+            with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+                info = ydl.extract_info(f"scsearch3:{text}", download=False)
+                for entry in info.get('entries', [])[:2]:
+                    results.append({
+                        'title': entry.get('title', 'نامشخص'),
+                        'url': entry.get('url') or entry.get('webpage_url', ''),
+                        'source': 'SoundCloud'
+                    })
+
+            if not results:
+                await msg.edit_text(t(user_id, 'no_results'))
+                return
+
+            keyboard = []
+            result_text = t(user_id, 'search_results') + "\n\n"
+            for i, r in enumerate(results[:5]):
+                result_text += f"{i+1}. {r['source']}: {r['title'][:40]}\n"
+                keyboard.append([InlineKeyboardButton(f"{i+1}. {r['title'][:30]}", callback_data=f"dl_{r['url'][:60]}")])
+
+            await msg.edit_text(result_text, reply_markup=InlineKeyboardMarkup(keyboard))
+        except Exception as e:
+            await msg.edit_text(t(user_id, 'no_results'))
         return
 
     users.add(user_id)
@@ -324,6 +417,7 @@ app.add_handler(CommandHandler("tomp3", tomp3_cmd))
 app.add_handler(CommandHandler("support", support_cmd))
 app.add_handler(CommandHandler("reply", reply_to_user))
 app.add_handler(CommandHandler("lang", lang_cmd))
+app.add_handler(CommandHandler("search", search_cmd))
 app.add_handler(MessageHandler(filters.VIDEO | filters.Document.VIDEO, handle_video))
 app.add_handler(CallbackQueryHandler(button_handler))
 app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_text))
